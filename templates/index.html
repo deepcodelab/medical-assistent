@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical Voice Assistant - Demo</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Medical Voice Assistant</h1>
+            <p class="subtitle">AI-Powered Symptom Triage Demo</p>
+        </div>
+
+        <div class="card">
+            <div class="icon">
+                <svg width="60" height="60" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
+                </svg>
+            </div>
+
+            <h2>Enter Phone Number</h2>
+            <p class="description">Our AI voice assistant will call you and ask a few questions about your symptoms</p>
+
+            <form id="phoneForm">
+                <div class="form-group">
+                    <label for="phoneNumber">Phone Number</label>
+                    <input
+                        type="tel"
+                        id="phoneNumber"
+                        name="phone_number"
+                        placeholder="+1234567890"
+                        required
+                        pattern="^\+?[1-9]\d{1,14}$"
+                    >
+                    <small>Include country code (e.g., +1 for US)</small>
+                </div>
+
+                <button type="submit" id="submitBtn">
+                    <span id="btnText">Initiate Call</span>
+                    <span id="btnLoader" class="loader" style="display: none;"></span>
+                </button>
+            </form>
+
+            <div id="responseMessage" class="message" style="display: none;"></div>
+
+            <div class="info-box">
+                <h3>What to Expect:</h3>
+                <ul>
+                    <li>You'll receive a call within seconds</li>
+                    <li>Answer 3-4 simple questions about your symptoms</li>
+                    <li>Get a brief assessment and recommendations</li>
+                    <li>This is a demo - not a substitute for medical advice</li>
+                </ul>
+            </div>
+        </div>
+
+        <div class="disclaimer">
+            <strong>Disclaimer:</strong> This is a demonstration system only. The information provided is not medical advice
+            and should not replace consultation with a qualified healthcare professional. In case of emergency, call 911.
+        </div>
+    </div>
+
+    <script>
+        const form = document.getElementById('phoneForm');
+        const submitBtn = document.getElementById('submitBtn');
+        const btnText = document.getElementById('btnText');
+        const btnLoader = document.getElementById('btnLoader');
+        const responseMessage = document.getElementById('responseMessage');
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+
+            const phoneNumber = document.getElementById('phoneNumber').value;
+
+            // Show loading state
+            submitBtn.disabled = true;
+            btnText.style.display = 'none';
+            btnLoader.style.display = 'inline-block';
+            responseMessage.style.display = 'none';
+
+            try {
+                const formData = new FormData();
+                formData.append('phone_number', phoneNumber);
+
+                const response = await fetch('/initiate-call', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                // Show response message
+                responseMessage.style.display = 'block';
+                if (data.success) {
+                    responseMessage.className = 'message success';
+                    responseMessage.innerHTML = `
+                        <strong>Success!</strong> ${data.message}<br>
+                        <small>You should receive the call shortly. Please answer your phone.</small>
+                    `;
+                    form.reset();
+                } else {
+                    responseMessage.className = 'message error';
+                    responseMessage.innerHTML = `<strong>Error:</strong> ${data.message}`;
+                }
+            } catch (error) {
+                responseMessage.style.display = 'block';
+                responseMessage.className = 'message error';
+                responseMessage.innerHTML = `<strong>Error:</strong> Failed to initiate call. Please try again.`;
+            } finally {
+                // Reset button state
+                submitBtn.disabled = false;
+                btnText.style.display = 'inline';
+                btnLoader.style.display = 'none';
+            }
+        });
+    </script>
+</body>
+</html>
